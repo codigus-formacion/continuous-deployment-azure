@@ -24,6 +24,7 @@ public class PostController {
 		return "index";
 	}
 
+	// GetMapping("/post/new")
 	@PostMapping("/post/new")
 	public String newPost(Model model, Post post) {
 
