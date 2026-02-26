@@ -44,15 +44,12 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: 'Run az commands to deploy container'
         run: |
-          az container create \
+          az containerapp up \
+            --name ${{ secrets.DOCKERHUB_USERNAME }}-posts \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --name posts \
+            --location westeurope \
+            --environment 'my-enviroment' \
             --image ${{ secrets.DOCKERHUB_USERNAME }}/posts:latest \
-            --registry-login-server index.docker.io \
-            --registry-username ${{ secrets.DOCKERHUB_USERNAME }} \
-            --registry-password ${{ secrets.DOCKERHUB_READ_TOKEN }} \
-            --dns-name-label posts-${{ secrets.DOCKERHUB_USERNAME }} \
-            --ports 8080 \
-            --os-type Linux \
-            --cpu 1 \
-            --memory 1.5 \
+            --target-port 8080 \
+            --ingress external \
+            --query properties.configuration.ingress.fqdn
