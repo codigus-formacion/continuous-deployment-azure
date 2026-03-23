@@ -4,7 +4,8 @@ Este proyecto consta de un servidor WEB sencillo para la gestión de posts (anun
 
 ## Despliegue en Azure (local)
 
-En primer lugar, nos logueamos en el cliente de Azure (el login se realizará con ayuda del navegador) 
+En primer lugar, nos logueamos en el cliente de Azure (el login se realizará con ayuda del navegador)
+
 ```
 az login
 ```
@@ -14,43 +15,25 @@ Creamos un grupo de recursos `posts-group`
 az group create --name posts-group --location westeurope
 ```
 
-Damos valor a las siguientes variables de entorno:
+Creamos nuestra aplicación lanzando un contenedor a partir de la imagen `maes95/posts:v1`. Le pondremos a la aplicación el nombre `posts-app`
 
 ```
-DOCKERHUB_USERNAME=
-DOCKERHUB_READ_TOKEN=
+az containerapp up \
+  --name posts-app \
+  --resource-group posts-group \
+  --location westeurope \
+  --image maes95/posts:latest \
+  --target-port 8080 \
+  --ingress external
 ```
 
-Creamos nuestra aplicación lanzando un contenedor a partir de la imagen `maes95/posts:v1`. Le pondremos a la aplicación el nombre `urjc-posts`
-
+Podemos obtener la URL de nuestra aplicación con el siguiente comando:
 ```
-az container create \
-    --resource-group posts-group \
-    --name posts-michel \
-    --image maes95/posts:v1 \
-    --registry-login-server index.docker.io \
-    --registry-username $DOCKERHUB_USERNAME \
-    --registry-password $DOCKERHUB_READ_TOKEN \
-    --dns-name-label posts-michel \
-    --ports 8080 \
-    --os-type Linux \
-    --cpu 1 \
-    --memory 1
+az containerapp show -n posts-app -g posts-group --query properties.configuration.ingress.fqdn
 ```
 
-La URL dónde podremos acceder a la aplicación será: posts-michel.spaincentral.azurecontainer.io
-
-Podemos ver el estado de nuestra aplicación con el siguiente comando
+Podemos borrar la aplicación con el siguiente comando:
 ```
-az container show  \
-    --resource-group posts-group \
-    --name posts-michel \
-    --query "{FQDN:ipAddress.fqdn,ProvisioningState:provisioningState}" \
-    --out table
-```
-
-Podemos revisar los logs utilizando el siguiente comando:
-```
-az container attach --resource-group posts-group --name posts-michel
+az container delete -n posts-app -g posts-group --yes
 ```
 
