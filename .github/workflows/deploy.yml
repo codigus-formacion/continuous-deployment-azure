@@ -23,11 +23,11 @@ jobs:
       - name: Run tests
         run: mvn test      
       - name: Generate Docker image
-        run: mvn spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=${{ secrets.DOCKERHUB_USERNAME }}/posts:latest
+        run: mvn spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=${{ secrets.DOCKERHUB_USERNAME }}/posts:v2
       - name: Login to DockerHub
         run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}" 
       - name: Push image to DockerHub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/posts:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/posts:v2
         
   deploy:
     runs-on: ubuntu-latest
@@ -40,12 +40,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: 'Run az commands to deploy container'
-        run: |
-          az containerapp up \
-            --name ${{ secrets.DOCKERHUB_USERNAME }}-posts \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --location westeurope \
-            --environment 'my-enviroment' \
-            --image ${{ secrets.DOCKERHUB_USERNAME }}/posts:latest \
-            --target-port 8080 \
-            --ingress external
+        run: az containerapp update \
+          --name posts-app \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --image ${{ secrets.DOCKERHUB_USERNAME }}/posts:v2
